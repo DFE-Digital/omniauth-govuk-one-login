@@ -36,7 +36,7 @@ describe OmniAuth::GovukOneLogin::IdToken do
       token_type: "Bearer"
     )
   end
-  let(:client) { MockClient.new({ signing_algorithm: }) }
+  let(:client) { MockClient.new }
 
   describe "#verify_nonce" do
     context "when the nonce matches the nonce in the session" do

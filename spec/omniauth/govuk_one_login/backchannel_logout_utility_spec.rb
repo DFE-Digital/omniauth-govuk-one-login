@@ -28,7 +28,8 @@ describe OmniAuth::GovukOneLogin::BackchannelLogoutUtility do
   subject do
     described_class.new(
       client_id: ClientFixtures.client_id,
-      idp_base_url: IdpFixtures.base_url
+      idp_base_url: IdpFixtures.base_url,
+      idp_configuration: MockIdpConfiguration.new(signing_algorithm:)
     )
   end
 
@@ -84,14 +85,6 @@ describe OmniAuth::GovukOneLogin::BackchannelLogoutUtility do
       context "with RS256 algorithm" do
         let(:private_key) { IdpFixtures.rsa_256_private_keys.first }
         let(:signing_algorithm) { "RS256" }
-
-        subject do
-          described_class.new(
-            client_id: ClientFixtures.client_id,
-            idp_base_url: IdpFixtures.base_url,
-            idp_configuration: MockIdpConfiguration.new(signing_algorithm:)
-          )
-        end
 
         it "returns the decoded logout token" do
           expect(subject.send(:decoded_logout_token)).to include(
