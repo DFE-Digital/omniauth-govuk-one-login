@@ -18,15 +18,18 @@ describe OmniAuth::GovukOneLogin::BackchannelLogoutUtility do
         sub: jwt_sub,
         events: jwt_events_claim
       },
-      IdpFixtures.private_keys.first,
-      "ES256"
+      private_key,
+      signing_algorithm
     )
   end
+  let(:private_key) { IdpFixtures.private_keys.first }
+  let(:signing_algorithm) { "ES256" }
 
   subject do
     described_class.new(
       client_id: ClientFixtures.client_id,
-      idp_base_url: IdpFixtures.base_url
+      idp_base_url: IdpFixtures.base_url,
+      idp_configuration: MockIdpConfiguration.new(signing_algorithm:)
     )
   end
 
@@ -66,15 +69,33 @@ describe OmniAuth::GovukOneLogin::BackchannelLogoutUtility do
     before { subject.send(:logout_token, jwt) }
 
     context "when all fields pass validation" do
-      it "returns the decoded logout token" do
-        expect(subject.send(:decoded_logout_token)).to include(
-          "aud" => jwt_aud,
-          "exp" => jwt_exp,
-          "iat" => jwt_iat,
-          "iss" => jwt_iss,
-          "sub" => jwt_sub,
-          "events" => jwt_events_claim
-        )
+      context "with ES256 algorithm" do
+        it "returns the decoded logout token" do
+          expect(subject.send(:decoded_logout_token)).to include(
+            "aud" => jwt_aud,
+            "exp" => jwt_exp,
+            "iat" => jwt_iat,
+            "iss" => jwt_iss,
+            "sub" => jwt_sub,
+            "events" => jwt_events_claim
+          )
+        end
+      end
+
+      context "with RS256 algorithm" do
+        let(:private_key) { IdpFixtures.rsa_256_private_keys.first }
+        let(:signing_algorithm) { "RS256" }
+
+        it "returns the decoded logout token" do
+          expect(subject.send(:decoded_logout_token)).to include(
+            "aud" => jwt_aud,
+            "exp" => jwt_exp,
+            "iat" => jwt_iat,
+            "iss" => jwt_iss,
+            "sub" => jwt_sub,
+            "events" => jwt_events_claim
+          )
+        end
       end
     end
 
